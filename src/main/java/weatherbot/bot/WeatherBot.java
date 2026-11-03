@@ -1,3 +1,5 @@
+package weatherbot.bot;
+
 import weatherbot.model.User;
 import weatherbot.service.WeatherService;
 import weatherbot.storage.UserBank;

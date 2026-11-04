@@ -9,7 +9,7 @@ import weatherbot.storage.UserBank;
  * Про консоль ничего не знает, поэтому её можно тестировать без ввода с клавиатуры.
  */
 public class WeatherBot {
-    static final String COMMANDS_HINT =
+    public static final String COMMANDS_HINT =
             "Введи 'погода', чтобы узнать прогноз, 'профиль', чтобы увидеть свои данные, или 'выход' для завершения.";
 
     private final UserBank userBank;

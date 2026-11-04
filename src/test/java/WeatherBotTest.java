@@ -1,6 +1,8 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import weatherbot.bot.BotState;
+import weatherbot.bot.WeatherBot;
 import weatherbot.model.User;
 import weatherbot.service.WeatherService;
 import weatherbot.storage.UserBank;

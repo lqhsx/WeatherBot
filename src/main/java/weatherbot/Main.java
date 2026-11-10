@@ -7,6 +7,7 @@ import weatherbot.storage.UserBank;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Scanner;
 
 /**
@@ -14,7 +15,7 @@ import java.util.Scanner;
  */
 public class Main {
     public static void main(String[] args) {
-        UserBank userBank = new UserBank();
+        UserBank userBank = new UserBank(Path.of("users.txt"));
         WeatherService weatherService = new WeatherService();
         WeatherBot bot = new WeatherBot(userBank, weatherService);
 

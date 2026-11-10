@@ -12,8 +12,13 @@ public class WeatherService {
             case "екатеринбург" -> "прохладно, переменная облачность, +10°C.";
             case "челябинск" -> "ясно, без осадков, +12°C.";
             case "санкт-петербург" -> "как всегда: ветер, дожди, берите зонт, +13°C.";
-            default -> "Прогноз для города " + city + " пока не добавлен в мою базу, но там наверняка отличная погода!";
+            default -> null;
         };
+
+        if (weatherData == null) {
+            return "Прогноз для города " + city + " пока не добавлен в мою базу, но там наверняка отличная погода!";
+        }
+
         return "В " + toPrepostionalCase(normalizedCity) + " " + weatherData;
     }
     private String toPrepostionalCase(String city) {

@@ -18,7 +18,7 @@ import java.util.Map;
  * пользователи, а каждый новый пользователь сразу дописывается в конец файла.
  * Без файла хранилище работает только в памяти
  */
-public class UserBank {
+public class UserBank implements UserBankInt {
     private static final String SEPARATOR = "\t";
 
     private final Map<Long, User> users = new HashMap<>();
@@ -39,6 +39,7 @@ public class UserBank {
         load();
     }
 
+    @Override
     public User save(String name, String city) {
         User newUser = new User(idCounter++, clean(name), clean(city));
         users.put(newUser.getId(), newUser);
@@ -46,6 +47,7 @@ public class UserBank {
         return newUser;
     }
 
+    @Override
     public User findById(long id) {
         return users.get(id);
     }
@@ -78,7 +80,9 @@ public class UserBank {
         }
         try {
             long id = Long.parseLong(parts[0].trim());
-            return new User(id, parts[1], parts[2]);
+            String name = parts[1].trim();
+            String city = parts[2].trim();
+            return new User(id, name, city);
         } catch (NumberFormatException e) {
             return null;
         }

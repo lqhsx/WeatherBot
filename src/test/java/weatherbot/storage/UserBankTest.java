@@ -21,7 +21,7 @@ class UserBankTest {
     @Test
     @DisplayName("save сохраняет имя и город пользователя")
     void saveKeepsNameAndCity() {
-        User user = bank.save("Аня", "Пермь");
+        User user = bank.save("Иван", "Пермь");
         assertEquals("Аня", user.getName());
         assertEquals("Пермь", user.getCity());
     }

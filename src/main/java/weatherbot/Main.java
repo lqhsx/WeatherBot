@@ -2,6 +2,7 @@ package weatherbot;
 
 import weatherbot.bot.WeatherBot;
 import weatherbot.console.ConsoleBot;
+import weatherbot.service.OpenMeteoClient;
 import weatherbot.service.WeatherService;
 import weatherbot.storage.UserBank;
 
@@ -16,8 +17,6 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         UserBank userBank = new UserBank(Path.of("users.txt"));
-        WeatherService weatherService = new WeatherService();
-        UserBank userBank = new UserBank();
         WeatherService weatherService = new WeatherService(new OpenMeteoClient());
         WeatherBot bot = new WeatherBot(userBank, weatherService);
 

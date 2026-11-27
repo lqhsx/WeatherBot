@@ -37,6 +37,12 @@ public class OpenMeteoClient implements WeatherClient {
         this.objectMapper = new ObjectMapper();
     }
 
+    /** Для тестов: позволяет подставить свой HttpClient вместо настоящего. */
+    OpenMeteoClient(HttpClient httpClient) {
+        this.httpClient = httpClient;
+        this.objectMapper = new ObjectMapper();
+    }
+
     @Override
     public String fetchWeather(String normalizedCity) {
         return fetch(normalizedCity, CURRENT_PARAMS, this::parseCurrent);

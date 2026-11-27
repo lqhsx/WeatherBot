@@ -2,54 +2,98 @@ package weatherbot.service;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WeatherServiceTest {
-    private final WeatherService service = new WeatherService();
 
-    @Test
-    @DisplayName("Для известного города возвращается его прогноз")
-    void knownCityReturnsForecast() {
-        assertEquals("В Перми сегодня дождь, целый день идет дождь, +5°C.",
-                service.getForecast("пермь"));
+    /** Сервис, у которого клиент всегда возвращает заданный ответ. */
+    private static WeatherService serviceWith(String weatherData) {
+        return new WeatherService(city -> weatherData);
     }
 
     @Test
-    @DisplayName("Регистр букв в названии города не важен")
-    void cityCaseIsIgnored() {
+    @DisplayName("Прогноз = «В <город в предложном падеже> » + ответ клиента")
+    void forecastCombinesCityAndClientData() {
+        assertEquals("В Москве ясно, +12°C.", serviceWith("ясно, +12°C.").getForecast("москва"));
+    }
+
+    @ParameterizedTest(name = "{0} -> В {1}")
+    @DisplayName("Название города склоняется в предложный падеж")
+    @CsvSource({
+            "москва,                Москве",
+            "пермь,                 Перми",
+            "казань,                Казани",
+            "екатеринбург,          Екатеринбурге",
+            "челябинск,             Челябинске",
+            "санкт-петербург,       Санкт-Петербурге",
+            "сочи,                  Сочи",
+            "тольятти,              Тольятти",
+            "иваново,               Иваново",
+            "хабаровск,             Хабаровске",
+            "нижний,                Нижнем",
+            "новороссийск,          Новороссийске"
+    })
+    void cityIsPutIntoPrepositionalCase(String city, String expectedForm) {
+        assertEquals("В " + expectedForm + " ок", serviceWith("ок").getForecast(city));
+    }
+
+    @Test
+    @DisplayName("Регистр букв и пробелы по краям не важны")
+    void caseAndSpacesAreIgnored() {
+        WeatherService service = serviceWith("ок");
         String expected = service.getForecast("москва");
+
         assertEquals(expected, service.getForecast("МОСКВА"));
         assertEquals(expected, service.getForecast("Москва"));
+        assertEquals(expected, service.getForecast("  Москва  "));
     }
 
     @Test
-    @DisplayName("Пробелы по краям названия города не важны")
-    void citySpacesAreIgnored() {
-        assertEquals(service.getForecast("екатеринбург"), service.getForecast("  Екатеринбург  "));
+    @DisplayName("Клиенту передаётся нормализованное название: нижний регистр, без пробелов")
+    void clientReceivesNormalizedCity() {
+        AtomicReference<String> received = new AtomicReference<>();
+        WeatherService service = new WeatherService(city -> {
+            received.set(city);
+            return "ок";
+        });
+
+        service.getForecast("  МоСкВа ");
+
+        assertEquals("москва", received.get());
     }
 
     @Test
-    @DisplayName("Города с дефисом распознаются")
-    void hyphenatedCitiesAreRecognized() {
-        assertEquals("В Питере как всегда: ветер, дожди, берите зонт, +13°C.",
-                service.getForecast("Санкт-Петербург"));
-        assertTrue(service.getForecast("Найт-Сити").startsWith("Доброе утро, Найт-Сити!"));
+    @DisplayName("Каждая часть названия с дефисом пишется с заглавной буквы")
+    void hyphenatedCityPartsAreCapitalized() {
+        String forecast = serviceWith("ок").getForecast("санкт-петербург");
+        assertTrue(forecast.startsWith("В Санкт-Петербурге "), forecast);
     }
 
     @Test
-    @DisplayName("У каждого города из базы свой прогноз")
-    void everyKnownCityHasOwnForecast() {
-        assertTrue(service.getForecast("челябинск").contains("Челябинске"));
-        assertTrue(service.getForecast("екатеринбург").contains("Екатеринбурге"));
-        assertTrue(service.getForecast("москва").contains("Москве"));
+    @DisplayName("Если клиент вернул null, пользователь получает сообщение об ошибке с названием города")
+    void unknownCityReturnsErrorMessage() {
+        assertEquals("Не удалось получить прогноз для города Омск. Проверь название или попробуй позже.",
+                serviceWith(null).getForecast("Омск"));
     }
 
     @Test
-    @DisplayName("Для неизвестного города возвращается сообщение-заглушка с его названием")
-    void unknownCityReturnsDefaultMessage() {
-        assertEquals("Прогноз для города Омск пока не добавлен в мою базу, но там наверняка отличная погода!",
-                service.getForecast("Омск"));
+    @DisplayName("Пустое название и одни пробелы дают сообщение, клиент при этом не вызывается")
+    void emptyCityDoesNotCallClient() {
+        AtomicInteger calls = new AtomicInteger();
+        WeatherService service = new WeatherService(city -> {
+            calls.incrementAndGet();
+            return "ок";
+        });
+
+        assertEquals("Название города не может быть пустым.", service.getForecast(""));
+        assertEquals("Название города не может быть пустым.", service.getForecast("   "));
+        assertEquals(0, calls.get());
     }
 }

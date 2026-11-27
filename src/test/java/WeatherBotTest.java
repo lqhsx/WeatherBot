@@ -4,8 +4,10 @@ import org.junit.jupiter.api.Test;
 import weatherbot.bot.BotState;
 import weatherbot.bot.WeatherBot;
 import weatherbot.model.User;
+import weatherbot.service.WeatherClient;
 import weatherbot.service.WeatherService;
 import weatherbot.storage.UserBank;
+
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -19,12 +21,19 @@ class WeatherBotTest {
             "Неизвестная команда. Доступные команды: погода, профиль, выход.";
 
     private UserBank userBank;
+    private WeatherClient fakeClient;
     private WeatherBot bot;
 
     @BeforeEach
     void setUp() {
         userBank = new UserBank();
-        bot = new WeatherBot(userBank, new WeatherService());
+        fakeClient = city -> {
+            if ("Пермь".equalsIgnoreCase(city)) {
+                return "В Перми сегодня дождь, целый день идет дождь, +5°C.";
+            }
+            return "Прогноз для города " + city + " пока не добавлен.";
+        };
+        bot = new WeatherBot(userBank, new WeatherService(fakeClient));
     }
 
     /** Проводит знакомство: старт, имя, город. */
@@ -98,7 +107,7 @@ class WeatherBotTest {
     @DisplayName("Два бота с общим хранилищем выдают пользователям разные ID")
     void sharedBankGivesDifferentIds() {
         register("Аня", "Пермь");
-        WeatherBot secondBot = new WeatherBot(userBank, new WeatherService());
+        WeatherBot secondBot = new WeatherBot(userBank, new WeatherService(fakeClient));
         secondBot.start();
         secondBot.reply("Боря");
         assertTrue(secondBot.reply("Москва").contains("Твой ID в системе: 2"));

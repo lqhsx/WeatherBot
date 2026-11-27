@@ -3,6 +3,7 @@ package weatherbot.console;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import weatherbot.bot.WeatherBot;
+import weatherbot.service.WeatherClient;
 import weatherbot.service.WeatherService;
 import weatherbot.storage.UserBank;
 
@@ -17,13 +18,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConsoleBotTest {
 
+    private final WeatherClient fakeClient = city -> {
+        if ("Пермь".equalsIgnoreCase(city)) {
+            return "В Перми сегодня дождь, целый день идет дождь, +5°C.";
+        }
+        return "Прогноз для города " + city + " пока не добавлен.";
+    };
+
     /** Запускает консольного бота на заданном вводе и возвращает всё, что он напечатал. */
     private String runWithInput(String... lines) {
         String input = String.join("\n", lines) + (lines.length > 0 ? "\n" : "");
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream out = new PrintStream(buffer, true, StandardCharsets.UTF_8);
 
-        WeatherBot bot = new WeatherBot(new UserBank(), new WeatherService());
+        WeatherBot bot = new WeatherBot(new UserBank(), new WeatherService(fakeClient));
         new ConsoleBot(bot, new Scanner(input), out).run();
 
         return buffer.toString(StandardCharsets.UTF_8);
